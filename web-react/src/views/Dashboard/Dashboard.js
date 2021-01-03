@@ -51,40 +51,40 @@ const GET_DATA_QUERY = gql`
     getOrganisationsCount
     getRelationshipCount
     getTotalRelationshipValue
-    getTopEmployed {
+    getTopSalary {
       name
-      employment
+      total_salary
       party {
         name
         }
     }
-    getTopProperty {
+    getTopPropertyOwners {
       name
-      properties
+      total_properties
       party {
         name
       }
     }
-    getTopDonatedTo {
+    getTopDonationsReceived {
       name
-      donations
+      total_freebies
       party {
         name
       }
+    }
+    getTopShareholdings {
+      name
+      total_shareholders
+      opencorporates_registration
     }
     getTopDonors {
       name
-      type
-      donations
+      total_donations
+      opencorporates_registration
     }
     getTopEmployers {
       name
-      type
-      employment
-    }
-    getTopShareholders {
-      name
-      shareholders
+      total_salaries
       opencorporates_registration
     }
   }
@@ -98,51 +98,51 @@ export default function Dashboard() {
   if (error) return <p>Error</p>
   if (loading) return <p>Loading</p>
   console.log(data)
-  const EmployedData = data.getTopEmployed.map((person) => (
+  const EmployeeData = data.getTopSalary.map((person) => (
     [
       person.name,
       person.party.name,
-      person.employment,
+      "£" + person.total_salary.toLocaleString(),
     ]
     )
     )
-  const PropertyData = data.getTopProperty.map((person) => (
+  const PropertyData = data.getTopPropertyOwners.map((person) => (
     [
       person.name,
-      person.properties,
       person.party.name,
+      person.total_properties,
     ]
     )
     )
-  const DonationsData = data.getTopDonatedTo.map((person) => (
+  const DonationsData = data.getTopDonationsReceived.map((person) => (
     [
       person.name,
       person.party.name,
-      person.donations,
+      "£" + person.total_freebies.toLocaleString(),
     ]
     )
     )
   const EmployersData = data.getTopEmployers.map((entity) => (
     [
       entity.name,
-      entity.type,
-      entity.employment,
+      entity.opencorporates_registration,
+      "£" + entity.total_salaries.toLocaleString(),
     ]
     )
     )
   const DonorsData = data.getTopDonors.map((entity) => (
     [
       entity.name,
-      entity.type,
-      entity.donations,
+      entity.opencorporates_registration,
+      "£" + entity.total_donations.toLocaleString(),
     ]
     )
     )
-  const ShareholdersData = data.getTopShareholders.map((entity) => (
+  const ShareholdersData = data.getTopShareholdings.map((entity) => (
     [
       entity.name,
-      entity.shareholders,
       entity.opencorporates_registration,
+      entity.total_shareholders,
     ]
     )
     )
@@ -240,7 +240,7 @@ export default function Dashboard() {
               <Table
                 tableHeaderColor="success"
                 tableHead={["Name", "Party", "Amount"]}
-                tableData={EmployedData}
+                tableData={EmployeeData}
               />
             </CardBody>
           </Card>
@@ -256,7 +256,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={["Name", "Employer Type", "Amount"]}
+                tableHead={["Name", "Registration ID", "Amount"]}
                 tableData={EmployersData}
               />
             </CardBody>
@@ -290,7 +290,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={["Name", "Donor Type", "Amount"]}
+                tableHead={["Name", "Registration ID", "Amount"]}
                 tableData={DonorsData}
               />
             </CardBody>
@@ -307,7 +307,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="success"
-                tableHead={["Name", "Num of Properties", "Party"]}
+                tableHead={["Name", "Party","Num of Properties"]}
                 tableData={PropertyData}
               />
             </CardBody>
@@ -324,7 +324,7 @@ export default function Dashboard() {
             <CardBody>
               <Table
                 tableHeaderColor="warning"
-                tableHead={["Name", "Num of Shareholders", "Company Registration"]}
+                tableHead={["Name", "Registration ID", "Num of Shareholders"]}
                 tableData={ShareholdersData}
               />
             </CardBody>

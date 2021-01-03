@@ -22,7 +22,6 @@ const GET_DATA_QUERY = gql`
   {
     getPeople(first: 15, orderBy: name_asc) {
       name
-      type
       address
       date_of_birth
     }
@@ -58,7 +57,6 @@ export default function Person() {
   const _tableData = data.getPeople.map((row) => (
     [
       row.name,
-      row.type,
       row.date_of_birth,
       row.address
     ]
@@ -79,7 +77,7 @@ export default function Person() {
               <CardBody>
                 <Table
                   tableHeaderColor="primary"
-                  tableHead={["Name", "Type", "Date of Birth", "Address"]}
+                  tableHead={["Name", "Date of Birth", "Address"]}
                   tableData={_tableData}
                 />
               </CardBody>
