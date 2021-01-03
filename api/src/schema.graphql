@@ -1,0 +1,111 @@
+type Entity {
+	entityId: ID!
+	name: String
+	opencorporates_registration: String
+	findthatcharity_registration: String
+	address: String
+	date_of_birth: String
+	email: String
+	twitter: String
+	facebook: String
+	linkedin: String
+	type: String @cypher(statement: "RETURN labels(this)[0]")
+  donations: Int @cypher(statement: """MATCH (this)<-[r:donation_from]-() RETURN SUM(toInteger(r.amount))""")
+  employment: Int @cypher(statement: """MATCH (this)<-[r:employed_by]-() RETURN SUM(toInteger(r.amount))""")
+}
+
+type Relationship {
+	relationshipId: ID!
+	amount: Int
+	date: String
+	link: String
+	text: String
+	source: Entity @cypher(statement: "MATCH (a)-[this]->() RETURN a")
+	target: Entity @cypher(statement: "MATCH ()-[this]->(b) RETURN b")
+	type: String @cypher(statement: "RETURN type(this)")
+}
+
+type person {
+	name: String!
+	opencorporates_registration: String
+	findthatcharity_registration: String
+	address: String
+	date_of_birth: String
+	email: String
+	twitter: String
+	facebook: String
+	linkedin: String
+	type: String @cypher(statement: "RETURN labels(this)[0]")
+	party: organisation @relation(name: "member_of", direction: "OUT")
+	employment: [organisation] @relation(name: "employed_by", direction: "OUT")
+}
+
+type politician {
+	name: String!
+	opencorporates_registration: String
+	findthatcharity_registration: String
+	address: String
+	date_of_birth: String
+	email: String
+	twitter: String
+	facebook: String
+	linkedin: String
+	type: String @cypher(statement: "RETURN labels(this)[0]")
+	party: political_party @relation(name: "member_of", direction: "OUT")
+	employment: Int @cypher(statement: """MATCH (this)-[r:employed_by]->() RETURN SUM(toInteger(r.amount))""")
+  donations: Int @cypher(statement: """MATCH (this)-[r:donation_from]->() RETURN SUM(toInteger(r.amount))""")
+  properties: Int @cypher(statement: """MATCH (this)-[r:owner_of]->() RETURN COUNT(r)""")
+}
+
+type organisation {
+	name: String!
+	opencorporates_registration: String
+	findthatcharity_registration: String
+	address: String
+	email: String
+	twitter: String
+	facebook: String
+	linkedin: String
+	type: String @cypher(statement: "RETURN labels(this)[0]")
+	employer_of: [person] @relation(name: "employed_by", direction: "IN")
+  shareholders: Int @cypher(statement: """MATCH (this)-[r:shareholder_of]-() RETURN COUNT(r)""")
+
+}
+
+type political_party {
+	name: String!
+	opencorporates_registration: String
+	findthatcharity_registration: String
+	address: String
+	date_of_birth: String
+	email: String
+	twitter: String
+	facebook: String
+	linkedin: String
+	type: String @cypher(statement: "RETURN labels(this)[0]")
+	members: [person] @relation(name: "member_of", direction: "IN")
+}
+
+type Query {
+	getEntities: [Entity] @cypher(statement: "MATCH (e) RETURN e")
+	getEntityCount: Int! @cypher(statement: "MATCH (e) RETURN COUNT(e)")
+	getEntityByName(name: String): [Entity]
+		@cypher(statement: "MATCH (e) WHERE toLower(e.name) CONTAINS toLower($name) RETURN e")
+	getEntityById(id: Int): [Entity] @cypher(statement: "MATCH (e) WHERE ID(e) = $id RETURN e")
+	getRelationships: [Relationship] @cypher(statement: "MATCH ()-[r]->() RETURN r")
+	getRelationshipCount: Int! @cypher(statement: "MATCH ()-[r]->() RETURN COUNT(r)")
+	getTotalRelationshipValue: Int @cypher(statement: "MATCH ()-[r]->() RETURN SUM(toInteger(r.amount))")
+	getPoliticians: [politician] @cypher(statement: "MATCH (e:politician) RETURN e")
+	getPeople: [person] @cypher(statement: "MATCH (e:person) RETURN e")
+	getPeopleCount: Int! @cypher(statement: "MATCH (e:person) RETURN COUNT(e)")
+	getOrganisations: [organisation] @cypher(statement: "MATCH (e:organisation) RETURN e")
+	getOrganisationsCount: Int! @cypher(statement: "MATCH (e:organisation) RETURN COUNT(e)")
+
+  getTopEmployed: [politician] @cypher(statement: "MATCH (p:politician)-[r:employed_by]-(o) RETURN p, sum(r.amount) as amount ORDER BY amount desc LIMIT 5")
+  getTopDonatedTo: [politician] @cypher(statement: "MATCH (p:politician)-[r:donation_from]-(o) RETURN p, sum(r.amount) as amount ORDER BY amount desc LIMIT 5")
+  getTopProperty: [politician] @cypher(statement: "MATCH (p:politician)-[r:owner_of]-(o) RETURN p, count(r.amount) as amount ORDER BY amount desc LIMIT 5")
+
+  getTopDonors: [Entity] @cypher(statement: "MATCH (p:politician)-[r:donation_from]-(o) RETURN o, sum(r.amount) as amount ORDER BY amount desc LIMIT 5")
+  getTopEmployers: [Entity] @cypher(statement: "MATCH (p:politician)-[r:employed_by]-(o) RETURN o, sum(r.amount) as amount ORDER BY amount desc LIMIT 5")
+  getTopShareholders: [organisation] @cypher(statement: "MATCH (p:politician)-[r:shareholder_of]-(o) RETURN o, count(r) as amount ORDER BY amount desc LIMIT 5")
+}
